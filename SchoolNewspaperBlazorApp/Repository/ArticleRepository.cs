@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
 using SchoolNewspaperBlazorApp.Data;
 using SchoolNewspaperBlazorApp.Interfaces.Repository;
 
@@ -6,14 +7,15 @@ namespace SchoolNewspaperBlazorApp.Repository
 {
     public class ArticleRepository : IArticleRepository
     {
-        private readonly NewspaperDbContext _context;
-        public ArticleRepository(NewspaperDbContext context)
+        private readonly IDbContextFactory<NewspaperDbContext> _contextFactory;
+        public ArticleRepository(IDbContextFactory<NewspaperDbContext> contextFactory)
         {
-            _context = context;
+            _contextFactory = contextFactory;
         }
 
         public async Task AddArticleAsync(Article article)
         {
+            using var _context = await _contextFactory.CreateDbContextAsync();
             await _context.Articles.AddAsync(article);
             await _context.SaveChangesAsync();
         }

@@ -1,6 +1,8 @@
 ﻿@page "/login"
 @using SchoolNewspaperBlazorApp.Interfaces.Service
 @rendermode InteractiveServer
+@inject IJSRuntime JS
+@inject NavigationManager nav
 <PageTitle>Logowanie | Gazetka ETI</PageTitle>
 
 <div class="login-page">
@@ -70,7 +72,7 @@
                 <p>Zaloguj się, aby przejść do panelu.</p>
             </div>
 
-            <form @onsubmit="HandleLoginAsync" @onsubmit:preventDefault>
+            <form action="/auth/login" method="post">
                 <div class="login-field">
                     <label for="login-email">Email</label>
 
@@ -87,8 +89,6 @@
 
                         <input id="login-email"
                                type="email"
-                               @bind="Email"
-                               @bind:event="oninput"
                                class="login-input"
                                placeholder="np. uczen@szkola.pl"
                                autocomplete="username"
@@ -112,8 +112,8 @@
 
                         <input id="login-password"
                                type="password"
-                               @bind="Password"
-                               @bind:event="oninput"
+
+
                                class="login-input"
                                placeholder="Wpisz swoje hasło"
                                autocomplete="current-password"
@@ -121,13 +121,10 @@
                     </div>
                 </div>
 
-                @if (!string.IsNullOrEmpty(errorMessage))
-                {
-                    <div class="login-error" role="alert">@errorMessage</div>
-                }
+                
 
-                <button type="submit" class="login-button" disabled="@isBusy">
-                    @(isBusy ? "Logowanie…" : "Zaloguj się")
+                <button type="submit" class="login-button">
+                    
                     <span aria-hidden="true">→</span>
                 </button>
             </form>
@@ -142,39 +139,6 @@
 
 
 @code {
-    public required string Email { get; set; } 
-    public required string Password { get; set; } 
-    private bool isBusy;
-    private string? errorMessage;
-    [Inject]
-    public IAuthService AuthService { get; set; }
-    private async Task HandleLoginAsync()
-    {
-        if (isBusy) return;
 
-        if (string.IsNullOrWhiteSpace(Email) || string.IsNullOrWhiteSpace(Password))
-        {
-            errorMessage = "Wpisz email i hasło.";
-            return;
-        }
-
-        isBusy = true;
-        errorMessage = null;
-        var succces = await AuthService.CheckIfRegisteredAsync(Email, Password);
-        if(succces)
-        {
-            errorMessage = "Udało się zalogować!";
-            isBusy = false;
-
-        }
-        else
-        {
-            errorMessage = "Nie udało się zalogować. Spróbuj ponownie.";
-            isBusy = false;
-
-        }
-
-
-    }
 
 }

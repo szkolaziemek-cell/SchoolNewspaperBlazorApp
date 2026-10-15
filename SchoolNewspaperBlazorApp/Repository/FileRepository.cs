@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
 using SchoolNewspaperBlazorApp.Data;
 using SchoolNewspaperBlazorApp.Interfaces.Repository;
 
@@ -6,13 +7,14 @@ namespace SchoolNewspaperBlazorApp.Repository
 {
     public class FileRepository : IFileRepository
     {
-        private readonly NewspaperDbContext _context;
-        public FileRepository(NewspaperDbContext context)
+        private readonly IDbContextFactory<NewspaperDbContext> _contextFactory;
+        public FileRepository(IDbContextFactory<NewspaperDbContext> contextFactory)
         {
-            _context = context;
+            _contextFactory = contextFactory;
         }
         public async Task<int> GetLastFileId()
         {
+            using var _context = await _contextFactory.CreateDbContextAsync();
             var id = await _context.Files
                 .OrderByDescending(x => x.Id)
                 .Select(x => x.Id)
