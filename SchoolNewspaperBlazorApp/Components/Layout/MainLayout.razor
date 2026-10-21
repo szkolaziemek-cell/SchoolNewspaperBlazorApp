@@ -2,7 +2,7 @@
 @using SchoolNewspaperBlazorApp.Components.Components
 @inherits LayoutComponentBase
 
-
+@* Layout wspólny dla stron: zawiera nagłówek, nawigację, popup i stopkę. *@
 <NotificationPopup/>
 <div class="site-shell">
     <header class="site-header">
@@ -128,6 +128,7 @@
     private bool _isLoggedIn;
     protected override async Task OnInitializedAsync()
     {
+        // Stan logowania steruje widocznością linków logowania i panelu administratora.
         var authState = await Asp.GetAuthenticationStateAsync();
         var user = authState.User;
         _isLoggedIn = user.Identity?.IsAuthenticated ?? false;

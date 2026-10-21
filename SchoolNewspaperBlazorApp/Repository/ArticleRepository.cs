@@ -4,10 +4,13 @@ using SchoolNewspaperBlazorApp.Interfaces.Repository;
 
 namespace SchoolNewspaperBlazorApp.Repository
 {
+    /// <summary>Wykonuje operacje CRUD artykułów przy użyciu Entity Framework.</summary>
     public class ArticleRepository : IArticleRepository
     {
+        // Fabryka tworzy osobny kontekst dla każdej operacji asynchronicznej.
         private readonly IDbContextFactory<NewspaperDbContext> _contextFactory;
 
+        /// <summary>Inicjalizuje repozytorium fabryką kontekstu bazy.</summary>
         public ArticleRepository(IDbContextFactory<NewspaperDbContext> contextFactory)
         {
             _contextFactory = contextFactory;
@@ -15,6 +18,7 @@ namespace SchoolNewspaperBlazorApp.Repository
 
         public async Task UpdateArticleByIdAsync(Article article)
         {
+            // Pobieramy istniejący rekord, aby aktualizować tylko jego dane.
             await using var _context = await _contextFactory.CreateDbContextAsync();
             var existingArticle = await _context.Articles.FirstOrDefaultAsync(a => a.Id == article.Id);
             if(existingArticle == null)
@@ -34,6 +38,7 @@ namespace SchoolNewspaperBlazorApp.Repository
         }
         public async Task<bool> AddArticleAsync(Article article)
         {
+            // Wynik false pozwala serwisowi wyświetlić użytkownikowi komunikat błędu.
             await using var _context = await _contextFactory.CreateDbContextAsync();
             try
             {
@@ -48,6 +53,7 @@ namespace SchoolNewspaperBlazorApp.Repository
         }
         public async Task<List<Article>> GetAllArticlesAsync()
         {
+            // Lista jest używana zarówno na stronie głównej, jak i w panelu administratora.
             await using var _context = await _contextFactory.CreateDbContextAsync();
 
             return await _context.Articles.ToListAsync();
@@ -55,6 +61,7 @@ namespace SchoolNewspaperBlazorApp.Repository
         }
         public async Task<Article> GetArticleByIdAsync(int id)
         {
+            // Brak rekordu jest sygnalizowany wyjątkiem obsługiwanym wyżej w aplikacji.
             await using var _context = await _contextFactory.CreateDbContextAsync();
 
             var article = await _context.Articles.FirstOrDefaultAsync(a => a.Id == id);
@@ -66,6 +73,7 @@ namespace SchoolNewspaperBlazorApp.Repository
         }
         public async Task RemoveArticleByIdAsync(int id)
         {
+            // Usunięcie odbywa się w dwóch krokach: wyszukanie rekordu i zapis zmian.
             await using var _context = await _contextFactory.CreateDbContextAsync();
 
             var article = await _context.Articles.FirstOrDefaultAsync(a => a.Id == id);

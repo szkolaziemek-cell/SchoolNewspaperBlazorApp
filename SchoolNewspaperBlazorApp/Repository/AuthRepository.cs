@@ -5,6 +5,7 @@ using SchoolNewspaperBlazorApp.Interfaces.Repository;
 
 namespace SchoolNewspaperBlazorApp.Repository
 {
+    /// <summary>Zapewnia dostęp do kont użytkowników w bazie danych.</summary>
     public class AuthRepository : IAuthRepository
     {
         private readonly IDbContextFactory<NewspaperDbContext> _contextFactory;
@@ -14,12 +15,14 @@ namespace SchoolNewspaperBlazorApp.Repository
         }
         public async Task<Dictionary<int,string>> GetAllUsersAsync()
         {
+            // Panel uprawnień potrzebuje identyfikatora i adresu e-mail każdego konta.
             await using var _context = await _contextFactory.CreateDbContextAsync();
             return await _context.Users
                 .ToDictionaryAsync(u => u.Id, u => u.Email);
         }
         public async Task AddUserAsync(User user)
         {
+            // Hasło jest już zahaszowane przez AuthService przed zapisem.
             await using var _context = await _contextFactory.CreateDbContextAsync();
 
             await _context.Users.AddAsync(user);
@@ -27,6 +30,7 @@ namespace SchoolNewspaperBlazorApp.Repository
         }
         public async Task<User> CheckIfRegisteredAsync(string login)
         {
+            // Logowanie odbywa się na podstawie adresu e-mail przekazanego jako login.
             await using var _context = await _contextFactory.CreateDbContextAsync();
 
             var user = await _context.Users

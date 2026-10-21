@@ -1,9 +1,12 @@
-﻿@using Microsoft.AspNetCore.Components.Authorization
+﻿@* Router wyszukuje komponent strony na podstawie adresu URL. *@
+@using Microsoft.AspNetCore.Components.Authorization
 <Router AppAssembly="typeof(Program).Assembly">
     <Found Context="routeData">
+        @* AuthorizeRouteView wymaga zalogowania dla stron oznaczonych Authorize. *@
         <AuthorizeRouteView 
             RouteData="routeData"
             DefaultLayout="typeof(Layout.MainLayout)">
+            @* Ten blok jest wyświetlany, gdy użytkownik nie ma dostępu do strony. *@
             <NotAuthorized>
                 <p>Nie masz uprawień do tej strony</p>
                 <a href="/login">Przejdz do </a>

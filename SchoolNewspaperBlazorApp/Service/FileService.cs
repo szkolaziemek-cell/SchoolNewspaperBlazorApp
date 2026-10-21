@@ -6,6 +6,7 @@ using SchoolNewspaperBlazorApp.Interfaces.Service;
 
 namespace SchoolNewspaperBlazorApp.Service
 {
+    /// <summary>Obsługuje podgląd, zapis i wyszukiwanie zdjęć artykułów.</summary>
     public class FileService : IFileService
     {
         private readonly IFileRepository _fileRepository;
@@ -19,6 +20,7 @@ namespace SchoolNewspaperBlazorApp.Service
         }
         public async Task<string> GetPreviewAsync(IBrowserFile file)
         {
+            // Podgląd jest kodem Data URL, dzięki czemu nie wymaga wcześniejszego zapisu pliku.
             using var stream = file.OpenReadStream(5 * 1024 * 1024);
             using var memoryStream = new MemoryStream();
             await stream.CopyToAsync(memoryStream);
@@ -27,6 +29,7 @@ namespace SchoolNewspaperBlazorApp.Service
         }
         public async Task<int> UploadImage(IBrowserFile file)
         {
+            // Tylko użytkownik uprawniony do dodawania artykułów może przesłać zdjęcie.
             bool hasPermission = await _permissionService.HasPermissionAsync(EnumPermissions.AddArticle);
             if (!hasPermission)
             {
@@ -61,6 +64,7 @@ namespace SchoolNewspaperBlazorApp.Service
         }
         public async Task<string> GetFileNameByIdAsync(int id)
         {
+            // Komponenty budują z tej nazwy adres /Images/{nazwa}.
             var file = await _fileRepository.GetFileByIdAsync(id);
             return file.FileName;
         }

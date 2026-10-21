@@ -6,6 +6,7 @@
 @inject IAuthService _authService
 @inject IPermissionService _permissionService;
 
+@* Lista użytkowników i checkboxy pozwalają administratorowi zmieniać uprawnienia. *@
 @foreach (var user in Users)
 {
     <div class="article-card mb-3">
@@ -60,11 +61,13 @@
 
     protected override async Task OnInitializedAsync()
     {
+        // Użytkownicy są ładowani raz przy otwarciu komponentu.
         Users = await _authService.GetAllUsersAsync();
     }
 
     private async Task TogglePermissions(int userId)
     {
+        // Ponowne kliknięcie zamyka panel; pierwsze kliknięcie pobiera aktualny stan.
         if (ExpandedUserId == userId)
         {
             ExpandedUserId = null;
@@ -99,6 +102,7 @@
 
     private async Task SavePermissions(int userId)
     {
+        // Serwis sprawdza uprawnienie Master i wyświetla wynik operacji.
         var selected = SelectedPermissions
             .Where(p => p.Value)
             .Select(p => p.Key)

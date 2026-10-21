@@ -2,7 +2,9 @@
 @using SchoolNewspaperBlazorApp.Interfaces.Service
 @inject IArticleService articleService
 @inject IFileService fileService
+@inject INotificationService notificationService
 
+@* Formularz jest używany zarówno do tworzenia, jak i edycji artykułu. *@
 <div class="add-article-form">
     <h1 class="add-article-form__title">Dodaj artykuł</h1>
 
@@ -45,6 +47,7 @@
     IBrowserFile? file;
     protected override void OnParametersSet()
     {
+        // Podczas edycji wypełniamy formularz danymi przekazanymi przez panel administratora.
         if(IsEdit && Article != null)
         {
             title = Article.Title;
@@ -54,9 +57,11 @@
     }
     private async Task SubmitForm()
     {
+        // Nowy artykuł wymaga zdjęcia; przy edycji zdjęcie może pozostać niezmienione.
         if(!IsEdit && file == null)
         {
-            errorMessage = "Dodajac artykuł musisz dodac zdjecie!";
+            errorMessage = "Dodając artykuł, musisz dodać zdjęcie.";
+            notificationService.Show(errorMessage, Data.Enums.EnumNotificationType.Failure);
             return;
         }
         int id = 0;
@@ -66,7 +71,7 @@
         }
         if (IsEdit && Article != null)
         {
-
+            // Przy edycji nowe zdjęcie jest opcjonalne i stare pozostaje bez zmian.
             await articleService.UpdateArticleByIdAsync(Article.Id,title, text, author,id);
         }
         else
@@ -76,6 +81,7 @@
     }
     private async Task ChoosePhoto(InputFileChangeEventArgs e)
     {
+        // Zapamiętujemy plik i od razu przygotowujemy jego podgląd w formularzu.
         file = e.File;
         previewImage = await fileService.GetPreviewAsync(file);
     }

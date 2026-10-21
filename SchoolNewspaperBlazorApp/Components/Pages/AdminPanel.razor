@@ -8,6 +8,7 @@
 @using SchoolNewspaperBlazorApp.Data
 @using SchoolNewspaperBlazorApp.Data.Enums
 @using SchoolNewspaperBlazorApp.Interfaces.Service
+@* Panel administratora pokazuje funkcje zależne od uprawnień bieżącego użytkownika. *@
 <div class="admin-page">
 
     <section class="admin-header">
@@ -287,11 +288,13 @@
     .ToDictionary(p => p, p => false);
     protected override async Task OnInitializedAsync()
     {
+        // Uprawnienia decydują, które kafelki i akcje będą dostępne w panelu.
         Permissions = await permissionService.GetAllPermissionsAsync();
     }
 
     protected override void OnParametersSet()
     {
+        // Parametr login służy do pokazania jednorazowego komunikatu po zalogowaniu.
         if (Notification == "login")
         {
             NotifyService.Show(
@@ -303,15 +306,18 @@
 
     public void SetView(int view)
     {
+        // Zmienna view wybiera aktualną sekcję panelu bez zmiany adresu URL.
         this.view = view;
     }
     public async Task LoadArticleAsync()
     {
+        // Lista jest odświeżana przed wejściem do widoku zarządzania artykułami.
         articleList = await articleService.GetAllArticlesAsync();
         SetView(1);
     }
     public async Task LoadArticleToEditAsync(int id)
     {
+        // Wybrany artykuł trafia do formularza edycji jako parametr komponentu.
         articleToEdit = await articleService.GetArticleByIdAsync(id);
         SetView(4);
     }

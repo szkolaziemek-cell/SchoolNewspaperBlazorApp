@@ -1,10 +1,12 @@
-﻿<!DOCTYPE html>
+﻿@* Główny dokument HTML aplikacji; komponent Routes renderuje właściwą stronę. *@
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <base href="/" />
+    @* Bootstrap dostarcza podstawowe klasy, a app.css zawiera styl gazetki. *@
     <link rel="stylesheet" href="bootstrap/bootstrap.min.css" />
     <link rel="stylesheet" href="app.css" />
     <link rel="stylesheet" href="SchoolNewspaperBlazorApp.styles.css" />
@@ -13,6 +15,7 @@
 </head>
 
 <body>
+    @* Interaktywność server-side pozwala obsługiwać zdarzenia bezpośrednio w Blazorze. *@
     <Routes @rendermode="InteractiveServer" />
     <script src="_framework/blazor.web.js"></script>
 </body>

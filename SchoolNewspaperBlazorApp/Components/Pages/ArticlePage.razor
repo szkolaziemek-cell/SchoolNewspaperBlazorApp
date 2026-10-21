@@ -1,9 +1,10 @@
 ﻿@page "/article/{Id:int}"
 
 @using SchoolNewspaperBlazorApp.Data
+@using SchoolNewspaperBlazorApp.Data.Enums
 @using SchoolNewspaperBlazorApp.Interfaces.Service
 
-
+@* Strona szczegółów pobiera artykuł oraz opcjonalne zdjęcie na podstawie Id z adresu. *@
 @if (article != null)
 {
     <article class="article-page">
@@ -12,6 +13,12 @@
         {
             <div class="article-page__img-wrap">
                 <img src="@imageUrl" alt="@article.Title" class="article-page__img" />
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-warning" role="alert">
+                Ten artykuł nie ma dodanego zdjęcia.
             </div>
         }
 
@@ -41,8 +48,12 @@
     [Inject]
     public IFileService fileService { get; set; } = default!;
 
+    [Inject]
+    public INotificationService notificationService { get; set; } = default!;
+
     protected override async Task OnInitializedAsync()
     {
+        // Najpierw pobieramy artykuł, a następnie szukamy jego pliku graficznego.
         article = await articleService.GetArticleByIdAsync(Id);
 
         if (article != null)
@@ -51,6 +62,11 @@
             if (!string.IsNullOrWhiteSpace(fileName))
             {
                 imageUrl = $"/Images/{fileName}";
+            }
+            else
+            {
+                // Brak pliku nie blokuje czytania artykułu, ale powinien być widoczny dla użytkownika.
+                notificationService.Show("Ten artykuł nie ma dodanego zdjęcia.", EnumNotificationType.Failure);
             }
         }
     }

@@ -7,6 +7,7 @@ using SchoolNewspaperBlazorApp.Interfaces.Service;
 
 namespace SchoolNewspaperBlazorApp.Service
 {
+    /// <summary>Realizuje operacje na artykułach wraz ze sprawdzaniem uprawnień i komunikatami.</summary>
     public class ArticleService : IArticleService
     {
         private readonly IArticleRepository _articleRepository;
@@ -20,6 +21,7 @@ namespace SchoolNewspaperBlazorApp.Service
         }
         public async Task AddArticleAsync(string title, string text, string author,int fileId)
         {
+            // Kontrola jest wykonywana w serwisie, aby nie można było ominąć jej przez inne UI.
             bool hasPermission = await _permissionService.HasPermissionAsync(EnumPermissions.AddArticle);
             if (!hasPermission)
             {
@@ -47,7 +49,11 @@ namespace SchoolNewspaperBlazorApp.Service
         public async Task UpdateArticleByIdAsync(int id,string title,string text,string author, int fileId)
         {
             bool hasPermission = await _permissionService.HasPermissionAsync(EnumPermissions.EditArticle);
-            if (!hasPermission) return;
+            if (!hasPermission)
+            {
+                _notificationService.Show("Brak uprawnień do edycji artykułu!", EnumNotificationType.Failure);
+                return;
+            }
             var article = new Article
             {
                 Id = id,
@@ -56,14 +62,25 @@ namespace SchoolNewspaperBlazorApp.Service
                 Author = author,
                 FileId = fileId
             };
-            await _articleRepository.UpdateArticleByIdAsync(article);
+            try
+            {
+                // Repozytorium zachowuje dotychczasowe zdjęcie, gdy fileId wynosi zero.
+                await _articleRepository.UpdateArticleByIdAsync(article);
+                _notificationService.Show("Pomyślnie edytowano artykuł!", EnumNotificationType.Success);
+            }
+            catch (Exception)
+            {
+                _notificationService.Show("Podczas edycji artykułu wystąpił błąd!", EnumNotificationType.Error);
+            }
         }
         public async Task<List<Article>> GetAllArticlesAsync()
         {
+            // Serwis przekazuje dane z repozytorium do komponentów Blazor.
             return await _articleRepository.GetAllArticlesAsync();
         }
         public async Task<Article> GetArticleByIdAsync(int id)
         {
+            // Szczegóły artykułu są potrzebne stronie ArticlePage i formularzowi edycji.
             Article article = await _articleRepository.GetArticleByIdAsync(id);
             if (article == null)
             {
@@ -74,12 +91,27 @@ namespace SchoolNewspaperBlazorApp.Service
         public async Task<bool> RemoveArticleByIdAsync(int id)
         {
             bool hasPermission = await _permissionService.HasPermissionAsync(EnumPermissions.DeleteArticle);
-            if (!hasPermission) return false;
+            if (!hasPermission)
+            {
+                _notificationService.Show("Brak uprawnień do usuwania artykułu!", EnumNotificationType.Failure);
+                return false;
+            }
             if (id > 0)
             {
-                 await _articleRepository.RemoveArticleByIdAsync(id);
+                try
+                {
+                    await _articleRepository.RemoveArticleByIdAsync(id);
+                    _notificationService.Show("Pomyślnie usunięto artykuł!", EnumNotificationType.Success);
+                }
+                catch (Exception)
+                {
+                    _notificationService.Show("Podczas usuwania artykułu wystąpił błąd!", EnumNotificationType.Error);
+                    return false;
+                }
+                return true;
             }
-            return true;
+            _notificationService.Show("Nieprawidłowy artykuł.", EnumNotificationType.Error);
+            return false;
         }
     }
 }

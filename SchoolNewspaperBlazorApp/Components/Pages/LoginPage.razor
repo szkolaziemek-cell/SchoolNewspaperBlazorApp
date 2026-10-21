@@ -7,6 +7,7 @@
 @inject INotificationService NotifyService
 @inject NavigationManager nav
 @inject AuthenticationStateProvider _asp
+@* Formularz logowania korzysta z endpointu /auth/login obsługiwanego przez aplikację. *@
 <PageTitle>Logowanie | Gazetka ETI</PageTitle>
 
 <div class="login-page">
@@ -148,6 +149,7 @@
     private bool _isLoggedIn;
     protected override async Task OnInitializedAsync()
     {
+        // Zalogowany użytkownik nie powinien ponownie oglądać formularza logowania.
         var authState = await _asp.GetAuthenticationStateAsync();
         var user = authState.User;
         _isLoggedIn = user.Identity?.IsAuthenticated ?? false;
@@ -159,6 +161,7 @@
     }
     protected override void OnParametersSet()
     {
+        // Endpoint logowania przekazuje wynik przez parametr notification w adresie URL.
         if (Notification == "loginError")
         {
             NotifyService.Show(

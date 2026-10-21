@@ -1,11 +1,13 @@
 ﻿@using SchoolNewspaperBlazorApp.Interfaces.Service
 @inject IAuthService authService
+@* Techniczny przycisk testowy do utworzenia przykładowego konta administracyjnego. *@
 <button class="btn btn-dark btn-sm" @onclick="AddUser">ADD USER (TECHNICZNE)</button>
 
 @code {
 
     public async Task AddUser()
     {
+        // Dane testowe są przekazywane do serwisu, który zahashuje hasło i zapisze konto.
         string login = "admin123";
         string password = "admin123";
         string email = "admin123@admin.pl";

@@ -6,6 +6,7 @@ using System.Security.Claims;
 
 namespace SchoolNewspaperBlazorApp.Repository
 {
+    /// <summary>Odczytuje i zapisuje relacje użytkowników z uprawnieniami.</summary>
     public class PermissionRepository : IPermissionRepository
     {
         private readonly IDbContextFactory<NewspaperDbContext> _contextFactory;
@@ -16,6 +17,7 @@ namespace SchoolNewspaperBlazorApp.Repository
 
         public async Task<List<EnumPermissions>> GetUserPermissionsAsync(int userId)
         {
+            // Zwracamy wartości enumów, aby UI nie musiało znać struktury tabel.
             await using var context = await _contextFactory.CreateDbContextAsync();
             return await context.UserPermissions
                 .Where(up => up.UserId == userId)
@@ -24,6 +26,7 @@ namespace SchoolNewspaperBlazorApp.Repository
         }
         public async Task<Dictionary<EnumPermissions, bool>> GetAllUserPermissionsAsync(int userId)
         {
+            // Mapa zawiera także uprawnienia nieprzypisane, co upraszcza obsługę checkboxów.
             await using var context = await _contextFactory.CreateDbContextAsync();
             var permissionsList = await GetUserPermissionsAsync(userId);
             return Enum.GetValues<EnumPermissions>()
@@ -35,7 +38,7 @@ namespace SchoolNewspaperBlazorApp.Repository
         }
         public async Task<bool> HasPermissionAsync(ClaimsPrincipal principal, EnumPermissions permission)
         {
-
+            // Id użytkownika jest zapisane w claims utworzonych podczas logowania.
             var id = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(id))
             {
@@ -54,6 +57,7 @@ namespace SchoolNewspaperBlazorApp.Repository
         }
         public async Task SavePermissionsAsync(List<EnumPermissions> permissions, int userId)
         {
+            // Najpierw usuwamy stare uprawnienia, a następnie zapisujemy aktualny wybór.
             await using var _context = await _contextFactory.CreateDbContextAsync();
             var masterId = await _context.Permissions
                 .Where(p => p.PermissionName == EnumPermissions.Master)

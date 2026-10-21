@@ -1,4 +1,5 @@
 ﻿@using SchoolNewspaperBlazorApp.Interfaces.Service
+@* Formularz tworzenia konta przekazuje dane do AuthService. *@
 <form @onsubmit="AddUserAsync" @onsubmit:preventDefault>
     <label class="form-label">Login</label>
     <input @bind="Login" class="form-control mb-3" placeholder="Login" />
@@ -22,6 +23,7 @@
 
     public async Task AddUserAsync()
     {
+        // Walidacja uprawnień, haszowanie hasła i powiadomienie są realizowane w serwisie.
         await AuthService.AddUserAsync(Login, Password, Email);
     }
 

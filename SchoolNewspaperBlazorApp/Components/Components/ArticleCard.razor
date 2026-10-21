@@ -1,5 +1,6 @@
 ﻿@using SchoolNewspaperBlazorApp.Data
 @using SchoolNewspaperBlazorApp.Interfaces.Service
+@* Karta działa w dwóch trybach: administracyjnym i publicznym. *@
 <div class="article-grid">
     @foreach (var article in Articles)
     {
@@ -62,6 +63,7 @@
     Dictionary<int, string> imageUrls = new Dictionary<int, string>();
     protected override async Task OnParametersSetAsync()
     {
+        // Przy każdej zmianie listy odświeżamy mapę identyfikatorów na adresy zdjęć.
         imageUrls.Clear();
         foreach (var article in Articles)
         {
@@ -74,10 +76,12 @@
     }
     private string GetImageUrl(int fileId)
     {
+        // Brak adresu pozwala wyświetlić kartę także dla artykułu bez zdjęcia.
         return imageUrls.TryGetValue(fileId, out var url) ? url : "";
     }
     public async Task RemoveArticleByIdAsync(int id)
     {
+        // Serwis decyduje o uprawnieniu i pokazuje komunikat; komponent usuwa kartę po sukcesie.
         var success = await articleService.RemoveArticleByIdAsync(id);
         if (success)
         {

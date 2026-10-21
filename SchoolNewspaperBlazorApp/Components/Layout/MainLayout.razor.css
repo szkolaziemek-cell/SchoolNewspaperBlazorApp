@@ -1,3 +1,4 @@
+/* Bazowy układ strony z główną treścią i bocznym panelem. */
 .page {
     position: relative;
     display: flex;
@@ -8,10 +9,12 @@ main {
     flex: 1;
 }
 
+/* Kolor bocznego panelu dla starszych elementów szablonu Blazor. */
 .sidebar {
     background-image: linear-gradient(180deg, rgb(5, 39, 103) 0%, #3a0647 70%);
 }
 
+/* Pasek górny wyrównuje linki i oddziela je od treści strony. */
 .top-row {
     background-color: #f7f7f7;
     border-bottom: 1px solid #d6d5d5;
@@ -37,6 +40,7 @@ main {
     }
 
 @media (max-width: 640.98px) {
+    /* Na małych ekranach pasek wykorzystuje całą szerokość. */
     .top-row {
         justify-content: space-between;
     }
@@ -47,6 +51,7 @@ main {
 }
 
 @media (min-width: 641px) {
+    /* Na większych ekranach układ przechodzi w wersję z panelem bocznym. */
     .page {
         flex-direction: row;
     }
@@ -77,6 +82,7 @@ main {
 }
 
 #blazor-error-ui {
+    /* Wbudowany komunikat frameworka dla nieobsłużonych błędów Blazora. */
     background: lightyellow;
     bottom: 0;
     box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.2);

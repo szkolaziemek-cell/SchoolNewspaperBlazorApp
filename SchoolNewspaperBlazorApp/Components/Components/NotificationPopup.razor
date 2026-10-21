@@ -3,10 +3,11 @@
 @using SchoolNewspaperBlazorApp.Interfaces.Service
 @implements IDisposable
 @inject INotificationService _notifyService
+@* Popup nasłuchuje kolejki globalnego serwisu i wyświetla komunikaty po kolei. *@
 @if(currentNotification != null)
 {
-<div class="notification-window">
-    <h1>@currentNotification.Message</h1>
+<div class="notification-window notification-window--@currentNotification.Type?.ToString().ToLowerInvariant()" role="alert">
+    <strong>@currentNotification.Message</strong>
 </div>
 }
 
@@ -16,6 +17,7 @@
     private bool isProcessing;
     protected override void OnInitialized()
     {
+        // Subskrypcja pozwala zareagować natychmiast po dodaniu nowego komunikatu.
         _notifyService.OnChange += HandleChange;
     }
     private void HandleChange()
@@ -24,6 +26,7 @@
     }
     private async Task ProcessQueueAsync()
     {
+        // Flaga chroni przed uruchomieniem kilku równoległych pętli obsługi.
         if (isProcessing)
             return;
         isProcessing = true;
@@ -47,6 +50,7 @@
     }
     public void Dispose()
     {
+        // Odsubskrybowanie zapobiega wyciekom pamięci po opuszczeniu layoutu.
         _notifyService.OnChange -= HandleChange;
 
     }

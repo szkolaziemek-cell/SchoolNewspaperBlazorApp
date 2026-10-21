@@ -5,6 +5,7 @@
    z jednego zestawu zmiennych poniżej.
    ========================================================= */
 
+/* Zmienne kolorów i odstępów są współdzielone przez wszystkie sekcje interfejsu. */
 :root {
     /* Granat */
     --eti-blue: #183a68; /* kolor szkoły – główny */
@@ -1780,6 +1781,29 @@ textarea.form-control {
         opacity: 1;
         transform: translateY(0);
     }
+}
+
+/* Kolory pozwalają szybko odróżnić sukces, brak uprawnień i błąd operacji. */
+.notification-window {
+    position: fixed;
+    top: 1.5rem;
+    right: 1.5rem;
+    z-index: 1050;
+    max-width: 28rem;
+    padding: 1rem 1.25rem;
+    border-left: 0.35rem solid var(--eti-blue);
+    border-radius: 0.35rem;
+    background: var(--eti-white);
+    box-shadow: 0 0.5rem 1.25rem rgba(24, 58, 104, 0.2);
+}
+
+.notification-window--success {
+    border-left-color: #198754;
+}
+
+.notification-window--failure,
+.notification-window--error {
+    border-left-color: #dc3545;
 }
 
 /* ========== RESPONSYWNOŚĆ ========== */
