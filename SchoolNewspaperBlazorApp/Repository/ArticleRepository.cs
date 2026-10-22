@@ -21,13 +21,18 @@ namespace SchoolNewspaperBlazorApp.Repository
             // Pobieramy istniejący rekord, aby aktualizować tylko jego dane.
             await using var _context = await _contextFactory.CreateDbContextAsync();
             var existingArticle = await _context.Articles.FirstOrDefaultAsync(a => a.Id == article.Id);
-            if(existingArticle == null)
+            if (existingArticle == null)
             {
                 return;
             }
-            if(article.FileId != 0)
+            if (article.FileId != 0)
             {
                 existingArticle.FileId = article.FileId;
+            }
+            // Brak nowej okładki oznacza pozostawienie dotychczasowej.
+            if (article.CoverFileId != null)
+            {
+                existingArticle.CoverFileId = article.CoverFileId;
             }
             existingArticle.Title = article.Title;
             existingArticle.Text = article.Text;
@@ -42,8 +47,8 @@ namespace SchoolNewspaperBlazorApp.Repository
             await using var _context = await _contextFactory.CreateDbContextAsync();
             try
             {
-            await _context.Articles.AddAsync(article);
-            await _context.SaveChangesAsync();
+                await _context.Articles.AddAsync(article);
+                await _context.SaveChangesAsync();
             }
             catch (Exception)
             {
@@ -57,7 +62,7 @@ namespace SchoolNewspaperBlazorApp.Repository
             await using var _context = await _contextFactory.CreateDbContextAsync();
 
             return await _context.Articles.ToListAsync();
-           
+
         }
         public async Task<Article> GetArticleByIdAsync(int id)
         {
@@ -77,7 +82,8 @@ namespace SchoolNewspaperBlazorApp.Repository
             await using var _context = await _contextFactory.CreateDbContextAsync();
 
             var article = await _context.Articles.FirstOrDefaultAsync(a => a.Id == id);
-            if (article == null) {
+            if (article == null)
+            {
                 throw new Exception($"Article with ID {id} not found.");
             }
             else
@@ -85,7 +91,7 @@ namespace SchoolNewspaperBlazorApp.Repository
                 _context.Articles.Remove(article);
                 await _context.SaveChangesAsync();
             }
-                
+
 
         }
     }

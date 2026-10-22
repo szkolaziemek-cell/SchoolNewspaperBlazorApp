@@ -13,13 +13,13 @@ namespace SchoolNewspaperBlazorApp.Service
         private readonly IArticleRepository _articleRepository;
         private readonly IPermissionService _permissionService;
         private readonly INotificationService _notificationService;
-        public ArticleService(IArticleRepository articleRepository, IPermissionService permissionService,INotificationService notificationService)
+        public ArticleService(IArticleRepository articleRepository, IPermissionService permissionService, INotificationService notificationService)
         {
             _articleRepository = articleRepository;
             _permissionService = permissionService;
             _notificationService = notificationService;
         }
-        public async Task AddArticleAsync(string title, string text, string author,int fileId)
+        public async Task AddArticleAsync(string title, string text, string author, int fileId, int? coverFileId = null)
         {
             // Kontrola jest wykonywana w serwisie, aby nie można było ominąć jej przez inne UI.
             bool hasPermission = await _permissionService.HasPermissionAsync(EnumPermissions.AddArticle);
@@ -34,10 +34,11 @@ namespace SchoolNewspaperBlazorApp.Service
                 Text = text,
                 Author = author,
                 PublishDate = DateTime.Now,
-                FileId = fileId
+                FileId = fileId,
+                CoverFileId = coverFileId
             };
             var succces = await _articleRepository.AddArticleAsync(article);
-            if(succces)
+            if (succces)
             {
                 _notificationService.Show("Pomyślnie dodano artykuł!", EnumNotificationType.Success);
             }
@@ -46,7 +47,7 @@ namespace SchoolNewspaperBlazorApp.Service
                 _notificationService.Show("Podczas dodawania artykułu wystąpił bład! Skontaktuj się z obłusga techniczna!", EnumNotificationType.Error);
             }
         }
-        public async Task UpdateArticleByIdAsync(int id,string title,string text,string author, int fileId)
+        public async Task UpdateArticleByIdAsync(int id, string title, string text, string author, int fileId, int? coverFileId = null)
         {
             bool hasPermission = await _permissionService.HasPermissionAsync(EnumPermissions.EditArticle);
             if (!hasPermission)
@@ -60,7 +61,8 @@ namespace SchoolNewspaperBlazorApp.Service
                 Title = title,
                 Text = text,
                 Author = author,
-                FileId = fileId
+                FileId = fileId,
+                CoverFileId = coverFileId
             };
             try
             {

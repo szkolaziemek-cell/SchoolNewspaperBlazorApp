@@ -44,6 +44,11 @@ namespace SchoolNewspaperBlazorApp.Repository
                 throw new Exception("Konto nie istnieje");
             }
         }
+
+        public Task<bool> LoginOrEmailExistsAsync(string login, string email)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
     

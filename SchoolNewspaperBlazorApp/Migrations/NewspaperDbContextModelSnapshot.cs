@@ -34,6 +34,9 @@ namespace SchoolNewspaperBlazorApp.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("CoverFileId")
+                        .HasColumnType("int");
+
                     b.Property<int>("FileId")
                         .HasColumnType("int");
 

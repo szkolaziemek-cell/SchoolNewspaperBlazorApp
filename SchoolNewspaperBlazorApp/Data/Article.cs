@@ -17,8 +17,10 @@ namespace SchoolNewspaperBlazorApp.Data
         public DateTime PublishDate { get; set; }
         /// <summary>Identyfikator zdjęcia powiązanego z artykułem.</summary>
         public int FileId { get; set; }
+        /// <summary>Identyfikator opcjonalnego zdjęcia okładkowego pokazywanego na kartach artykułów.</summary>
+        public int? CoverFileId { get; set; }
 
     }
 
-    
+
 }

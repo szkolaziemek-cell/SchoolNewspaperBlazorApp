@@ -8,7 +8,7 @@
         {
             <div class="article-card">
                 <div class="article-card__img-wrap">
-                    <img src="@GetImageUrl(article.FileId)" class="article-card__img" alt="@article.Title" loading="lazy">
+                    <img src="@GetImageUrl(DisplayFileId(article))" class="article-card__img" alt="@article.Title" loading="lazy">
                 </div>
                 <div class="article-card__body">
                     <h5 class="article-card__title">@article.Title</h5>
@@ -32,7 +32,7 @@
         {
             <NavLink class="article-card article-card--link" href="@($"/article/{article.Id}")">
                 <div class="article-card__img-wrap">
-                    <img src="@GetImageUrl(article.FileId)" class="article-card__img" alt="@article.Title" loading="lazy">
+                    <img src="@GetImageUrl(DisplayFileId(article))" class="article-card__img" alt="@article.Title" loading="lazy">
                 </div>
                 <div class="article-card__body">
                     <h5 class="article-card__title">@article.Title</h5>
@@ -67,12 +67,18 @@
         imageUrls.Clear();
         foreach (var article in Articles)
         {
-            var fileName = await fileService.GetFileNameByIdAsync(article.FileId);
+            var displayId = DisplayFileId(article);
+            var fileName = await fileService.GetFileNameByIdAsync(displayId);
             if (!string.IsNullOrWhiteSpace(fileName))
             {
-                imageUrls[article.FileId] = $"/Images/{fileName}";
+                imageUrls[displayId] = $"/Images/{fileName}";
             }
         }
+    }
+    private static int DisplayFileId(Article article)
+    {
+        // Na liście pokazujemy okładkę, a gdy jej nie ma, zdjęcie główne.
+        return article.CoverFileId ?? article.FileId;
     }
     private string GetImageUrl(int fileId)
     {

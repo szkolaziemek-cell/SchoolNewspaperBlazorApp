@@ -8,16 +8,30 @@
 <div class="add-article-form">
     <h1 class="add-article-form__title">Dodaj artykuł</h1>
 
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="alert alert-danger" role="alert">@errorMessage</div>
+    }
+
     @if (previewImage != null)
     {
         <div class="image-preview-wrap">
             <img src="@previewImage" alt="zdjęcie" class="image-preview" />
         </div>
     }
+    <label class="form-label">Zdjęcie główne</label>
+    <InputFile OnChange="ChoosePhoto" accept=".jpg,.jpeg,.png,.webp" class="form-control mb-1" />
+    <div class="form-text mb-3">Dozwolone formaty: JPG, PNG, WEBP (maks. 5 MB).</div>
 
-    <h1>@errorMessage</h1>
-    <label class="form-label">Zdjęcie</label>
-    <InputFile OnChange="ChoosePhoto" accept="image/*" class="form-control mb-3" />
+    @if (previewCover != null)
+    {
+        <div class="image-preview-wrap">
+            <img src="@previewCover" alt="okładka" class="image-preview" />
+        </div>
+    }
+    <label class="form-label">Zdjęcie okładkowe (opcjonalne)</label>
+    <InputFile OnChange="ChooseCover" accept=".jpg,.jpeg,.png,.webp" class="form-control mb-1" />
+    <div class="form-text mb-3">Okładka pojawia się na liście artykułów. Bez niej użyjemy zdjęcia głównego.</div>
 
     <form @onsubmit="SubmitForm" @onsubmit:preventDefault>
         <label class="form-label">Tytuł</label>
@@ -43,8 +57,10 @@
     private string text = "";
     private string author = "";
     private string? previewImage;
+    private string? previewCover;
     private string? errorMessage;
     IBrowserFile? file;
+    IBrowserFile? coverFile;
     protected override void OnParametersSet()
     {
         // Podczas edycji wypełniamy formularz danymi przekazanymi przez panel administratora.
@@ -57,33 +73,77 @@
     }
     private async Task SubmitForm()
     {
-        // Nowy artykuł wymaga zdjęcia; przy edycji zdjęcie może pozostać niezmienione.
+        // Nowy artykuł wymaga zdjęcia głównego; przy edycji zdjęcia mogą pozostać niezmienione.
         if(!IsEdit && file == null)
         {
             errorMessage = "Dodając artykuł, musisz dodać zdjęcie.";
             notificationService.Show(errorMessage, Data.Enums.EnumNotificationType.Failure);
             return;
         }
-        int id = 0;
-        if (file != null)
+        try
         {
-            id = await fileService.UploadImage(file);
+            int id = 0;
+            int? coverId = null;
+            if (file != null)
+            {
+                id = await fileService.UploadImage(file);
+            }
+            if (coverFile != null)
+            {
+                coverId = await fileService.UploadImage(coverFile);
+            }
+            if (IsEdit && Article != null)
+            {
+                // Przy edycji nowe zdjęcia są opcjonalne, a stare pozostają bez zmian.
+                await articleService.UpdateArticleByIdAsync(Article.Id, title, text, author, id, coverId);
+            }
+            else
+            {
+                await articleService.AddArticleAsync(title, text, author, id, coverId);
+            }
+            errorMessage = null;
         }
-        if (IsEdit && Article != null)
+        catch (InvalidOperationException ex)
         {
-            // Przy edycji nowe zdjęcie jest opcjonalne i stare pozostaje bez zmian.
-            await articleService.UpdateArticleByIdAsync(Article.Id,title, text, author,id);
+            // Komunikaty z FileService (brak uprawnień, zły plik) są przeznaczone dla użytkownika.
+            errorMessage = ex.Message;
+            notificationService.Show(ex.Message, Data.Enums.EnumNotificationType.Failure);
         }
-        else
+        catch (Exception)
         {
-            await articleService.AddArticleAsync(title, text, author, id);
+            errorMessage = "Nie udało się zapisać zdjęcia.";
+            notificationService.Show(errorMessage, Data.Enums.EnumNotificationType.Error);
         }
     }
     private async Task ChoosePhoto(InputFileChangeEventArgs e)
     {
-        // Zapamiętujemy plik i od razu przygotowujemy jego podgląd w formularzu.
+        // Niepoprawny plik odrzucamy od razu, zanim trafi do zapisu.
+        var error = await fileService.ValidateImageAsync(e.File);
+        if (error != null)
+        {
+            file = null;
+            previewImage = null;
+            errorMessage = error;
+            notificationService.Show(error, Data.Enums.EnumNotificationType.Failure);
+            return;
+        }
+        errorMessage = null;
         file = e.File;
         previewImage = await fileService.GetPreviewAsync(file);
     }
+    private async Task ChooseCover(InputFileChangeEventArgs e)
+    {
+        var error = await fileService.ValidateImageAsync(e.File);
+        if (error != null)
+        {
+            coverFile = null;
+            previewCover = null;
+            errorMessage = error;
+            notificationService.Show(error, Data.Enums.EnumNotificationType.Failure);
+            return;
+        }
+        errorMessage = null;
+        coverFile = e.File;
+        previewCover = await fileService.GetPreviewAsync(coverFile);
+    }
 }
-
