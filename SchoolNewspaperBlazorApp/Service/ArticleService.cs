@@ -19,7 +19,7 @@ namespace SchoolNewspaperBlazorApp.Service
             _permissionService = permissionService;
             _notificationService = notificationService;
         }
-        public async Task AddArticleAsync(string title, string text, string author, int fileId, int? coverFileId = null)
+        public async Task AddArticleAsync(string title, string text, string author, int fileId, int? coverFileId = null, string? tags = null, DateTime? eventDate = null, EnumArticleType articleType = EnumArticleType.News)
         {
             // Kontrola jest wykonywana w serwisie, aby nie można było ominąć jej przez inne UI.
             bool hasPermission = await _permissionService.HasPermissionAsync(EnumPermissions.AddArticle);
@@ -28,6 +28,16 @@ namespace SchoolNewspaperBlazorApp.Service
                 _notificationService.Show("Brak uprawnień!", EnumNotificationType.Failure);
                 return;
             }
+            // Wydarzenie wymaga daty, a aktualność jej nie ma.
+            if (articleType == EnumArticleType.Event && eventDate == null)
+            {
+                _notificationService.Show("Wydarzenie musi mieć ustawioną datę!", EnumNotificationType.Failure);
+                return;
+            }
+            if (articleType == EnumArticleType.News)
+            {
+                eventDate = null;
+            }
             var article = new Article
             {
                 Title = title,
@@ -35,7 +45,10 @@ namespace SchoolNewspaperBlazorApp.Service
                 Author = author,
                 PublishDate = DateTime.Now,
                 FileId = fileId,
-                CoverFileId = coverFileId
+                CoverFileId = coverFileId,
+                Tags = NormalizeTags(tags),
+                EventDate = eventDate,
+                ArticleType = articleType
             };
             var succces = await _articleRepository.AddArticleAsync(article);
             if (succces)
@@ -47,13 +60,23 @@ namespace SchoolNewspaperBlazorApp.Service
                 _notificationService.Show("Podczas dodawania artykułu wystąpił bład! Skontaktuj się z obłusga techniczna!", EnumNotificationType.Error);
             }
         }
-        public async Task UpdateArticleByIdAsync(int id, string title, string text, string author, int fileId, int? coverFileId = null)
+        public async Task UpdateArticleByIdAsync(int id, string title, string text, string author, int fileId, int? coverFileId = null, string? tags = null, DateTime? eventDate = null, EnumArticleType articleType = EnumArticleType.News)
         {
             bool hasPermission = await _permissionService.HasPermissionAsync(EnumPermissions.EditArticle);
             if (!hasPermission)
             {
                 _notificationService.Show("Brak uprawnień do edycji artykułu!", EnumNotificationType.Failure);
                 return;
+            }
+            // Wydarzenie wymaga daty, a aktualność jej nie ma.
+            if (articleType == EnumArticleType.Event && eventDate == null)
+            {
+                _notificationService.Show("Wydarzenie musi mieć ustawioną datę!", EnumNotificationType.Failure);
+                return;
+            }
+            if (articleType == EnumArticleType.News)
+            {
+                eventDate = null;
             }
             var article = new Article
             {
@@ -62,7 +85,10 @@ namespace SchoolNewspaperBlazorApp.Service
                 Text = text,
                 Author = author,
                 FileId = fileId,
-                CoverFileId = coverFileId
+                CoverFileId = coverFileId,
+                Tags = NormalizeTags(tags),
+                EventDate = eventDate,
+                ArticleType = articleType
             };
             try
             {
@@ -74,6 +100,24 @@ namespace SchoolNewspaperBlazorApp.Service
             {
                 _notificationService.Show("Podczas edycji artykułu wystąpił błąd!", EnumNotificationType.Error);
             }
+        }
+        private const int MaxTags = 5;
+        private const int MaxTagLength = 30;
+        /// <summary>Czyści hasztagi: bez #, małe litery, tylko litery/cyfry/podkreślenie, bez duplikatów, maksymalnie 5.</summary>
+        private static string NormalizeTags(string? rawTags)
+        {
+            if (string.IsNullOrWhiteSpace(rawTags))
+            {
+                return string.Empty;
+            }
+            var tags = rawTags
+                .Split(new[] { ',', ';', ' ', '#' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Select(tag => new string(tag.Where(ch => char.IsLetterOrDigit(ch) || ch == '_').ToArray()).ToLowerInvariant())
+                .Where(tag => tag.Length > 0)
+                .Select(tag => tag.Length > MaxTagLength ? tag[..MaxTagLength] : tag)
+                .Distinct()
+                .Take(MaxTags);
+            return string.Join(",", tags);
         }
         public async Task<List<Article>> GetAllArticlesAsync()
         {

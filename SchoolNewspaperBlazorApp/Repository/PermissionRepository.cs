@@ -55,6 +55,49 @@ namespace SchoolNewspaperBlazorApp.Repository
                  (up.Permission.PermissionName == permission ||
                   up.Permission.PermissionName == EnumPermissions.Master));
         }
+        public async Task EnsureMasterAsync(int userId)
+        {
+            await using var context = await _contextFactory.CreateDbContextAsync();
+            // Dodajemy tylko te definicje, których jeszcze nie ma w tabeli Permissions.
+            var existing = await context.Permissions.Select(p => p.PermissionName).ToListAsync();
+            foreach (var name in Enum.GetValues<EnumPermissions>().Where(n => !existing.Contains(n)))
+            {
+                context.Permissions.Add(new Permission
+                {
+                    PermissionName = name,
+                    PermissionViewName = GetViewName(name)
+                });
+            }
+            await context.SaveChangesAsync();
+
+            var masterId = await context.Permissions
+                .Where(p => p.PermissionName == EnumPermissions.Master)
+                .Select(p => p.Id)
+                .FirstAsync();
+            var hasMaster = await context.UserPermissions
+                .AnyAsync(up => up.UserId == userId && up.PermissionId == masterId);
+            if (!hasMaster)
+            {
+                context.UserPermissions.Add(new UserPermission
+                {
+                    UserId = userId,
+                    PermissionId = masterId,
+                    PermissionName = nameof(EnumPermissions.Master)
+                });
+                await context.SaveChangesAsync();
+            }
+        }
+        private static string GetViewName(EnumPermissions permission) => permission switch
+        {
+            EnumPermissions.AddArticle => "Dodawanie artykułów",
+            EnumPermissions.EditArticle => "Edycja artykułów",
+            EnumPermissions.DeleteArticle => "Usuwanie artykułów",
+            EnumPermissions.AddUser => "Dodawanie użytkowników",
+            EnumPermissions.ManageUser => "Zarządzanie użytkownikami",
+            EnumPermissions.AddFile => "Dodawanie plików",
+            EnumPermissions.Master => "Administrator",
+            _ => permission.ToString()
+        };
         public async Task SavePermissionsAsync(List<EnumPermissions> permissions, int userId)
         {
             // Najpierw usuwamy stare uprawnienia, a następnie zapisujemy aktualny wybór.

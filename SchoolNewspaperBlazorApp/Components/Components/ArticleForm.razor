@@ -1,4 +1,5 @@
 ﻿@using SchoolNewspaperBlazorApp.Data
+@using SchoolNewspaperBlazorApp.Data.Enums
 @using SchoolNewspaperBlazorApp.Interfaces.Service
 @inject IArticleService articleService
 @inject IFileService fileService
@@ -41,7 +42,28 @@
         <textarea @bind="text" class="form-control mb-3" rows="6" placeholder="Treść artykułu..."></textarea>
 
         <label class="form-label">Autor</label>
-        <input @bind="author" class="form-control mb-4" placeholder="Imię i nazwisko" />
+        <input @bind="author" class="form-control mb-3" placeholder="Imię i nazwisko" />
+
+        <label class="form-label">Hasztagi (opcjonalne)</label>
+        <input @bind="tags" class="form-control mb-1" placeholder="np. sport, konkurs, wycieczka" maxlength="200" />
+        <div class="form-text mb-3">Oddziel przecinkami lub spacjami. Maksymalnie 5 hasztagów, znak # nie jest potrzebny.</div>
+
+        <label class="form-label">Rodzaj artykułu</label>
+        <select @bind="articleType" class="form-control mb-3">
+            <option value="@EnumArticleType.News">Aktualność</option>
+            <option value="@EnumArticleType.Event">Wydarzenie</option>
+        </select>
+
+        @if (articleType == EnumArticleType.Event)
+        {
+            <label class="form-label">Data i godzina wydarzenia</label>
+            <input type="datetime-local" @bind="eventDate" class="form-control mb-1" required />
+            <div class="form-text mb-4">Wydarzenie trafi do zakładki Wydarzenia.</div>
+        }
+        else
+        {
+            <div class="form-text mb-4">Aktualność trafi do zakładki Aktualności.</div>
+        }
 
         <button type="submit" class="btn btn-primary w-100">@(IsEdit ? "Zatwierdź edycje" : "Dodaj artykuł")</button>
     </form>
@@ -56,6 +78,9 @@
     private string title = "";
     private string text = "";
     private string author = "";
+    private string tags = "";
+    private DateTime? eventDate;
+    private EnumArticleType articleType = EnumArticleType.News;
     private string? previewImage;
     private string? previewCover;
     private string? errorMessage;
@@ -69,6 +94,9 @@
             title = Article.Title;
             text = Article.Text;
             author = Article.Author;
+            tags = string.Join(", ", Article.GetTagList());
+            eventDate = Article.EventDate;
+            articleType = Article.ArticleType;
         }
     }
     private async Task SubmitForm()
@@ -77,6 +105,12 @@
         if(!IsEdit && file == null)
         {
             errorMessage = "Dodając artykuł, musisz dodać zdjęcie.";
+            notificationService.Show(errorMessage, Data.Enums.EnumNotificationType.Failure);
+            return;
+        }
+        if (articleType == EnumArticleType.Event && eventDate == null)
+        {
+            errorMessage = "Wydarzenie musi mieć ustawioną datę.";
             notificationService.Show(errorMessage, Data.Enums.EnumNotificationType.Failure);
             return;
         }
@@ -95,11 +129,11 @@
             if (IsEdit && Article != null)
             {
                 // Przy edycji nowe zdjęcia są opcjonalne, a stare pozostają bez zmian.
-                await articleService.UpdateArticleByIdAsync(Article.Id, title, text, author, id, coverId);
+                await articleService.UpdateArticleByIdAsync(Article.Id, title, text, author, id, coverId, tags, eventDate, articleType);
             }
             else
             {
-                await articleService.AddArticleAsync(title, text, author, id, coverId);
+                await articleService.AddArticleAsync(title, text, author, id, coverId, tags, eventDate, articleType);
             }
             errorMessage = null;
         }

@@ -1,0 +1,100 @@
+﻿@page "/aktualnosci"
+@rendermode InteractiveServer
+@using SchoolNewspaperBlazorApp.Components.Components
+@using SchoolNewspaperBlazorApp.Data
+@using SchoolNewspaperBlazorApp.Interfaces.Service
+@inject IArticleService articleService
+
+@* Aktualności: wszystkie artykuły od najnowszych, z wyszukiwarką i filtrem po hasztagach. *@
+<PageTitle>Aktualności | Gazetka ETI</PageTitle>
+
+<div class="section-heading">
+    <div>
+        <h2>Aktualności</h2>
+        <p>Aktualności z życia szkoły, od najnowszych.</p>
+    </div>
+</div>
+
+<div class="news-toolbar">
+    <input type="search" class="form-control news-search"
+           placeholder="Szukaj po tytule, treści lub autorze..."
+           @bind="search" @bind:event="oninput" />
+
+    @if (allTags.Count > 0)
+    {
+        <div class="tag-filter">
+            <button type="button" class="tag-chip @(selectedTag == null ? "tag-chip--active" : "")"
+                    @onclick="() => SelectTag(null)">
+                Wszystkie
+            </button>
+            @foreach (var tag in allTags)
+            {
+                <button type="button" class="tag-chip @(selectedTag == tag ? "tag-chip--active" : "")"
+                        @onclick="() => SelectTag(tag)">
+                    #@tag
+                </button>
+            }
+        </div>
+    }
+</div>
+
+@{
+    var filtered = Filtered;
+}
+@if (filtered.Count == 0)
+{
+    <div class="admin-empty-state">
+        <h3>Brak artykułów</h3>
+        <p>Nie znaleźliśmy nic dla wybranych filtrów. Zmień wyszukiwaną frazę albo wybierz inny hasztag.</p>
+    </div>
+}
+else
+{
+    <ArticleCard Articles="filtered" Permissions="false" />
+}
+
+@code {
+    private List<Article> articles = new();
+    private List<string> allTags = new();
+    private string search = string.Empty;
+    private string? selectedTag;
+
+    // Lista po filtrach jest liczona przy każdym renderze, bo dane są niewielkie.
+    private List<Article> Filtered => articles.Where(Matches).ToList();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var all = await articleService.GetAllArticlesAsync();
+        // Zakładka pokazuje tylko artykuły oznaczone jako aktualność.
+        articles = all.Where(a => !a.IsEvent).OrderByDescending(a => a.PublishDate).ToList();
+        // Najpopularniejsze hasztagi są na początku, remisy po kolei alfabetycznie.
+        allTags = articles
+            .SelectMany(a => a.GetTagList())
+            .GroupBy(tag => tag)
+            .OrderByDescending(g => g.Count())
+            .ThenBy(g => g.Key)
+            .Select(g => g.Key)
+            .ToList();
+    }
+
+    private void SelectTag(string? tag)
+    {
+        selectedTag = tag;
+    }
+
+    private bool Matches(Article article)
+    {
+        if (selectedTag != null && !article.GetTagList().Contains(selectedTag))
+        {
+            return false;
+        }
+        if (string.IsNullOrWhiteSpace(search))
+        {
+            return true;
+        }
+        var query = search.Trim();
+        return article.Title.Contains(query, StringComparison.CurrentCultureIgnoreCase)
+            || article.Text.Contains(query, StringComparison.CurrentCultureIgnoreCase)
+            || article.Author.Contains(query, StringComparison.CurrentCultureIgnoreCase);
+    }
+}

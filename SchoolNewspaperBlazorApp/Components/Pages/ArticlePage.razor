@@ -24,14 +24,35 @@
 
         <h1 class="article-page__title">@article.Title</h1>
 
+        <div class="article-page__byline">
+            <span class="article-page__author">@article.Author</span>
+            <time class="article-page__date">@article.PublishDate.ToString("dd.MM.yyyy, HH:mm")</time>
+        </div>
+
+        @if (article.IsEvent)
+        {
+            <p class="article-event-badge">📅 Wydarzenie@(article.EventDate != null ? ": " + article.EventDate.Value.ToString("dd.MM.yyyy, HH:mm") : "")</p>
+        }
+        else
+        {
+            <p class="article-news-badge">Aktualność</p>
+        }
+
+        @if (!string.IsNullOrEmpty(article.Tags))
+        {
+            <div class="article-tags article-page__tags">
+                @foreach (var tag in article.GetTagList())
+                {
+                    <span class="article-tag">#@tag</span>
+                }
+            </div>
+        }
+
 
         <div class="article-page__content">
             @article.Text
         </div>
 
-        <div class="article-page__meta">
-            <span class="article-page__author">@article.Author</span>
-        </div>
     </article>
 }
 

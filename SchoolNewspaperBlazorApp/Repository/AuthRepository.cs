@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Internal;
 using SchoolNewspaperBlazorApp.Data;
 using SchoolNewspaperBlazorApp.Interfaces.Repository;
 
@@ -13,7 +12,7 @@ namespace SchoolNewspaperBlazorApp.Repository
         {
             _contextFactory = contextFactory;
         }
-        public async Task<Dictionary<int,string>> GetAllUsersAsync()
+        public async Task<Dictionary<int, string>> GetAllUsersAsync()
         {
             // Panel uprawnień potrzebuje identyfikatora i adresu e-mail każdego konta.
             await using var _context = await _contextFactory.CreateDbContextAsync();
@@ -28,6 +27,13 @@ namespace SchoolNewspaperBlazorApp.Repository
             await _context.Users.AddAsync(user);
             await _context.SaveChangesAsync();
         }
+        public async Task<bool> LoginOrEmailExistsAsync(string login, string email)
+        {
+            // Porównanie wykonuje SQL Server, więc domyślnie nie rozróżnia wielkości liter.
+            await using var _context = await _contextFactory.CreateDbContextAsync();
+            return await _context.Users
+                .AnyAsync(u => u.Login == login || u.Email == email);
+        }
         public async Task<User> CheckIfRegisteredAsync(string login)
         {
             // Logowanie odbywa się na podstawie adresu e-mail przekazanego jako login.
@@ -35,7 +41,7 @@ namespace SchoolNewspaperBlazorApp.Repository
 
             var user = await _context.Users
                 .FirstOrDefaultAsync(u => u.Email == login);
-            if(user != null)
+            if (user != null)
             {
                 return user;
             }
@@ -44,11 +50,5 @@ namespace SchoolNewspaperBlazorApp.Repository
                 throw new Exception("Konto nie istnieje");
             }
         }
-
-        public Task<bool> LoginOrEmailExistsAsync(string login, string email)
-        {
-            throw new NotImplementedException();
-        }
     }
 }
-    

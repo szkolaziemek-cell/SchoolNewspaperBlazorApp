@@ -11,10 +11,30 @@
                     <img src="@GetImageUrl(DisplayFileId(article))" class="article-card__img" alt="@article.Title" loading="lazy">
                 </div>
                 <div class="article-card__body">
+                    @if (article.IsEvent)
+                    {
+                        <span class="article-event-badge">📅 Wydarzenie@(article.EventDate != null ? " · " + article.EventDate.Value.ToString("dd.MM.yyyy, HH:mm") : "")</span>
+                    }
+                    else
+                    {
+                        <span class="article-news-badge">Aktualność</span>
+                    }
                     <h5 class="article-card__title">@article.Title</h5>
+                    @if (!string.IsNullOrEmpty(article.Tags))
+                    {
+                        <div class="article-tags">
+                            @foreach (var tag in article.GetTagList())
+                            {
+                                <span class="article-tag">#@tag</span>
+                            }
+                        </div>
+                    }
                     <p class="article-card__text">@article.Text</p>
                     <div class="article-card__footer">
-                        <span class="article-card__author">@article.Author</span>
+                        <span class="article-card__byline">
+                            <span class="article-card__author">@article.Author</span>
+                            <time class="article-card__date">@article.PublishDate.ToString("dd.MM.yyyy, HH:mm")</time>
+                        </span>
                         @if(CanDelete)
                         {
                         <button class="btn btn-sm btn-outline-danger" @onclick="() => RemoveArticleByIdAsync(article.Id)">
@@ -35,10 +55,30 @@
                     <img src="@GetImageUrl(DisplayFileId(article))" class="article-card__img" alt="@article.Title" loading="lazy">
                 </div>
                 <div class="article-card__body">
+                    @if (article.IsEvent)
+                    {
+                        <span class="article-event-badge">📅 Wydarzenie@(article.EventDate != null ? " · " + article.EventDate.Value.ToString("dd.MM.yyyy, HH:mm") : "")</span>
+                    }
+                    else
+                    {
+                        <span class="article-news-badge">Aktualność</span>
+                    }
                     <h5 class="article-card__title">@article.Title</h5>
+                    @if (!string.IsNullOrEmpty(article.Tags))
+                    {
+                        <div class="article-tags">
+                            @foreach (var tag in article.GetTagList())
+                            {
+                                <span class="article-tag">#@tag</span>
+                            }
+                        </div>
+                    }
                     <p class="article-card__text">@article.Text</p>
                     <div class="article-card__footer">
-                        <span class="article-card__author">@article.Author</span>
+                        <span class="article-card__byline">
+                            <span class="article-card__author">@article.Author</span>
+                            <time class="article-card__date">@article.PublishDate.ToString("dd.MM.yyyy, HH:mm")</time>
+                        </span>
                         <span class="article-card__more">Czytaj więcej →</span>
                     </div>
                 </div>
@@ -63,15 +103,25 @@
     Dictionary<int, string> imageUrls = new Dictionary<int, string>();
     protected override async Task OnParametersSetAsync()
     {
-        // Przy każdej zmianie listy odświeżamy mapę identyfikatorów na adresy zdjęć.
-        imageUrls.Clear();
+        // Dociągamy tylko brakujące adresy zdjęć, więc filtrowanie listy nie odpytuje bazy od nowa.
         foreach (var article in Articles)
         {
             var displayId = DisplayFileId(article);
-            var fileName = await fileService.GetFileNameByIdAsync(displayId);
-            if (!string.IsNullOrWhiteSpace(fileName))
+            if (imageUrls.ContainsKey(displayId))
             {
-                imageUrls[displayId] = $"/Images/{fileName}";
+                continue;
+            }
+            try
+            {
+                var fileName = await fileService.GetFileNameByIdAsync(displayId);
+                if (!string.IsNullOrWhiteSpace(fileName))
+                {
+                    imageUrls[displayId] = $"/Images/{fileName}";
+                }
+            }
+            catch (Exception)
+            {
+                // Brak zdjęcia w bazie nie może przewrócić całej listy.
             }
         }
     }

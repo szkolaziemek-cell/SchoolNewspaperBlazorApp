@@ -26,7 +26,7 @@ namespace SchoolNewspaperBlazorApp.Service
             _permissionService = permissionService;
             _notificationService = notificationService;
         }
-        public async Task<Dictionary<int,string>> GetAllUsersAsync()
+        public async Task<Dictionary<int, string>> GetAllUsersAsync()
         {
             // Lista jest wykorzystywana do wyboru użytkownika w panelu uprawnień.
             return await _authRepository.GetAllUsersAsync();
@@ -48,7 +48,7 @@ namespace SchoolNewspaperBlazorApp.Service
             // Rejestracja jest publiczna, ale konto nie dostaje żadnych uprawnień.
             return await CreateUserAsync(login, password, email, "rejestracja");
         }
-        public async Task<int> CheckIfRegisteredAsync(string login,string password)
+        public async Task<int> CheckIfRegisteredAsync(string login, string password)
         {
             // Puste dane odrzucamy od razu, bez zapytania do bazy.
             if (string.IsNullOrWhiteSpace(login) || string.IsNullOrWhiteSpace(password))
@@ -60,8 +60,8 @@ namespace SchoolNewspaperBlazorApp.Service
             try
             {
                 var user = await _authRepository.CheckIfRegisteredAsync(login.Trim());
-                var result = hasher.VerifyHashedPassword(login,user.Password,password);
-                if(result == PasswordVerificationResult.Success)
+                var result = hasher.VerifyHashedPassword(login, user.Password, password);
+                if (result == PasswordVerificationResult.Success)
                 {
                     return user.Id;
                 }
@@ -136,11 +136,6 @@ namespace SchoolNewspaperBlazorApp.Service
                 return $"Hasło musi mieć od {MinPasswordLength} do {MaxPasswordLength} znaków!";
 
             return null;
-        }
-
-        Task IAuthService.AddUserAsync(string login, string password, string email)
-        {
-            return AddUserAsync(login, password, email);
         }
     }
 }

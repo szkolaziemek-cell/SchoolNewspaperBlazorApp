@@ -32,6 +32,10 @@
 @* Tryb false oznacza widok czytelnika bez przycisków administracyjnych. *@
 <ArticleCard Articles="articles" permissions="false" />
 
+<div class="section-more">
+    <a href="/aktualnosci" class="btn btn-primary">Wszystkie aktualności →</a>
+</div>
+
 
 @code 
 {
@@ -39,6 +43,8 @@
     protected override async Task OnInitializedAsync()
     {
         // Dane są pobierane przed pierwszym renderowaniem listy artykułów.
-        articles = await articleService.GetAllArticlesAsync();
+        var all = await articleService.GetAllArticlesAsync();
+        // Na stronie głównej pokazujemy tylko 6 najnowszych, resztę ma zakładka Aktualności.
+        articles = all.OrderByDescending(a => a.PublishDate).Take(6).ToList();
     }
 }

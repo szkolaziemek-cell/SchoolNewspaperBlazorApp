@@ -1,0 +1,59 @@
+﻿@page "/wydarzenia"
+@using SchoolNewspaperBlazorApp.Components.Components
+@using SchoolNewspaperBlazorApp.Data
+@using SchoolNewspaperBlazorApp.Interfaces.Service
+@inject IArticleService articleService
+
+@* Wydarzenia to artykuły z ustawioną datą wydarzenia, podzielone na nadchodzące i minione. *@
+<PageTitle>Wydarzenia | Gazetka ETI</PageTitle>
+
+<div class="section-heading">
+    <div>
+        <h2>Nadchodzące wydarzenia</h2>
+        <p>Co wydarzy się w naszej szkole, od najbliższych.</p>
+    </div>
+</div>
+
+@if (upcoming.Count == 0)
+{
+    <div class="admin-empty-state">
+        <h3>Brak zaplanowanych wydarzeń</h3>
+        <p>Gdy redakcja doda nowe wydarzenie, pojawi się tutaj.</p>
+    </div>
+}
+else
+{
+    <ArticleCard Articles="upcoming" Permissions="false" />
+}
+
+@if (past.Count > 0)
+{
+    <div class="section-heading section-heading--spaced">
+        <div>
+            <h2>Minione wydarzenia</h2>
+            <p>Co już za nami.</p>
+        </div>
+    </div>
+    <ArticleCard Articles="past" Permissions="false" />
+}
+
+@code {
+    private List<Article> upcoming = new();
+    private List<Article> past = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var events = (await articleService.GetAllArticlesAsync())
+            .Where(a => a.IsEvent && a.EventDate != null)
+            .ToList();
+        // Wydarzenie z dzisiejszą datą nadal uznajemy za nadchodzące do końca dnia.
+        upcoming = events
+            .Where(a => a.EventDate!.Value.Date >= DateTime.Today)
+            .OrderBy(a => a.EventDate)
+            .ToList();
+        past = events
+            .Where(a => a.EventDate!.Value.Date < DateTime.Today)
+            .OrderByDescending(a => a.EventDate)
+            .ToList();
+    }
+}

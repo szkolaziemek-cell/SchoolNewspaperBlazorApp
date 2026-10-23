@@ -37,6 +37,10 @@ namespace SchoolNewspaperBlazorApp.Repository
             existingArticle.Title = article.Title;
             existingArticle.Text = article.Text;
             existingArticle.Author = article.Author;
+            existingArticle.Tags = article.Tags;
+            // Pusta data oznacza, że artykuł nie jest (już) wydarzeniem.
+            existingArticle.EventDate = article.EventDate;
+            existingArticle.ArticleType = article.ArticleType;
 
             await _context.SaveChangesAsync();
 

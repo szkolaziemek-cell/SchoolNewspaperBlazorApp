@@ -1,16 +1,30 @@
-﻿@using SchoolNewspaperBlazorApp.Interfaces.Service
+﻿@using SchoolNewspaperBlazorApp.Data.Enums
+@using SchoolNewspaperBlazorApp.Interfaces.Service
 @inject IAuthService authService
-@* Techniczny przycisk testowy do utworzenia przykładowego konta administracyjnego. *@
+@inject IPermissionService permissionService
+@inject INotificationService notificationService
+@* Techniczny przycisk: tworzy konto testowe i nadaje mu uprawnienia administratora (tylko w trybie Development). *@
 <button class="btn btn-dark btn-sm" @onclick="AddUser">ADD USER (TECHNICZNE)</button>
 
 @code {
 
     public async Task AddUser()
     {
-        // Dane testowe są przekazywane do serwisu, który zahashuje hasło i zapisze konto.
         string login = "admin123";
         string password = "admin123";
         string email = "admin123@admin.pl";
-        await authService.AddUserAsync(login,password,email);
+
+        // Rejestracja nie wymaga zalogowania. Jeśli konto już istnieje, serwis tylko to zgłosi.
+        await authService.RegisterAsync(login, password, email);
+
+        // Id konta pobieramy przez weryfikację hasła, więc działa też dla konta założonego wcześniej.
+        var userId = await authService.CheckIfRegisteredAsync(email, password);
+        if (userId == 0)
+        {
+            notificationService.Show("Nie znaleziono konta testowego lub hasło się nie zgadza.", EnumNotificationType.Failure);
+            return;
+        }
+
+        await permissionService.BootstrapMasterAsync(userId);
     }
 }

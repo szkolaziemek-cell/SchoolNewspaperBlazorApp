@@ -30,6 +30,9 @@ namespace SchoolNewspaperBlazorApp.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("ArticleType")
+                        .HasColumnType("int");
+
                     b.Property<string>("Author")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -37,11 +40,18 @@ namespace SchoolNewspaperBlazorApp.Migrations
                     b.Property<int?>("CoverFileId")
                         .HasColumnType("int");
 
+                    b.Property<DateTime?>("EventDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("FileId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("PublishDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("Tags")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Text")
                         .IsRequired()

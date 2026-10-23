@@ -16,5 +16,7 @@ namespace SchoolNewspaperBlazorApp.Interfaces.Service
         Task<Dictionary<EnumPermissions, bool>> GetAllPermissionsAsync();
         /// <summary>Pobiera identyfikator użytkownika z jego claims.</summary>
         Task<int> GetUserId();
+        /// <summary>Narzędzie deweloperskie: tworzy definicje uprawnień i nadaje użytkownikowi Master. Działa tylko w trybie Development.</summary>
+        Task BootstrapMasterAsync(int userId);
     }
 }

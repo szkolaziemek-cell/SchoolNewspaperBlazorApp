@@ -64,7 +64,7 @@ namespace SchoolNewspaperBlazorApp
             if (!app.Environment.IsDevelopment())
             {
                 app.UseExceptionHandler("/Error");
-               
+
                 app.UseHsts();
             }
             app.MapPost("/auth/login", async (
@@ -95,6 +95,12 @@ namespace SchoolNewspaperBlazorApp
                 await context.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme,
                     principal);
                 return Results.Redirect("/adminPanel?notification=login");
+            });
+            app.MapGet("/logout", async (HttpContext context) =>
+            {
+                // Wylogowanie usuwa ciasteczko uwierzytelniające i wraca na stronę główną.
+                await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                return Results.Redirect("/");
             });
             var imagesPath = Path.Combine(
                 builder.Environment.ContentRootPath,

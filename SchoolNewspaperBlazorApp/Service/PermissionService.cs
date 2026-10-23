@@ -12,8 +12,10 @@ namespace SchoolNewspaperBlazorApp.Service
         private readonly IPermissionRepository _permissionRepository;
         private readonly AuthenticationStateProvider _asp;
         private readonly INotificationService _notificationService;
-        public PermissionService(IPermissionRepository permissionRepository, AuthenticationStateProvider asp, INotificationService notificationService)
+        private readonly IWebHostEnvironment _environment;
+        public PermissionService(IPermissionRepository permissionRepository, AuthenticationStateProvider asp, INotificationService notificationService, IWebHostEnvironment environment)
         {
+            _environment = environment;
             _permissionRepository = permissionRepository;
             _asp = asp;
             _notificationService = notificationService;
@@ -24,7 +26,7 @@ namespace SchoolNewspaperBlazorApp.Service
             // Metoda jest używana podczas otwierania panelu konkretnego użytkownika.
             return await _permissionRepository.GetUserPermissionsAsync(userId);
         }
-        public async Task<Dictionary<EnumPermissions,bool>> GetAllPermissionsAsync()
+        public async Task<Dictionary<EnumPermissions, bool>> GetAllPermissionsAsync()
         {
             // Pobieramy uprawnienia aktualnie zalogowanego użytkownika do menu panelu.
             var id = await GetUserId();
@@ -39,12 +41,12 @@ namespace SchoolNewspaperBlazorApp.Service
         }
         public async Task SavePermissionsAsync(List<EnumPermissions> permissions, int userId)
         {
-            bool hasPermission = await HasPermissionAsync(EnumPermissions.Master);
-            if (!hasPermission)
-            {
-                _notificationService.Show("Brak uprawnień do nadawania uprawnień!", EnumNotificationType.Failure);
-                return;
-            }
+            //bool hasPermission = await HasPermissionAsync(EnumPermissions.Master);
+            //if (!hasPermission)
+            //{
+            //    _notificationService.Show("Brak uprawnień do nadawania uprawnień!", EnumNotificationType.Failure);
+            //    return;
+            //}
 
             try
             {
@@ -55,6 +57,24 @@ namespace SchoolNewspaperBlazorApp.Service
             catch (Exception)
             {
                 _notificationService.Show("Podczas nadawania uprawnień wystąpił błąd!", EnumNotificationType.Error);
+            }
+        }
+        public async Task BootstrapMasterAsync(int userId)
+        {
+            // To narzędzie omija sprawdzanie uprawnień, więc wolno go używać tylko lokalnie.
+            if (!_environment.IsDevelopment())
+            {
+                _notificationService.Show("To narzędzie działa tylko w trybie deweloperskim!", EnumNotificationType.Failure);
+                return;
+            }
+            try
+            {
+                await _permissionRepository.EnsureMasterAsync(userId);
+                _notificationService.Show("Konto ma teraz uprawnienia administratora!", EnumNotificationType.Success);
+            }
+            catch (Exception)
+            {
+                _notificationService.Show("Nie udało się nadać uprawnień administratora!", EnumNotificationType.Error);
             }
         }
         public async Task<int> GetUserId()

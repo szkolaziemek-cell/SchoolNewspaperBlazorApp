@@ -14,5 +14,7 @@ namespace SchoolNewspaperBlazorApp.Interfaces.Repository
         Task<List<EnumPermissions>> GetUserPermissionsAsync(int userId);
         /// <summary>Pobiera mapę wszystkich uprawnień i ich stan dla użytkownika.</summary>
         Task<Dictionary<EnumPermissions, bool>> GetAllUserPermissionsAsync(int userId);
+        /// <summary>Uzupełnia brakujące definicje uprawnień i nadaje użytkownikowi uprawnienie Master.</summary>
+        Task EnsureMasterAsync(int userId);
     }
 }
